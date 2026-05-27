@@ -83,7 +83,7 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="flex flex-col items-center text-center px-6 py-20 gap-6 bg-gradient-to-b from-orange-50 to-white">
         <span className="text-sm font-medium text-orange-600 bg-orange-100 px-3 py-1 rounded-full border border-orange-200">
-          Jakarta's Smartest Gym
+          Indonesia Smartest Gym
         </span>
         <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-zinc-900 leading-tight max-w-2xl">
           Your fitness journey<br className="hidden sm:block" /> starts <span className="text-orange-500">today</span>.
