@@ -4,6 +4,7 @@ import { useState, Suspense, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AlertCircle, CheckCircle, ChevronRight, Eye, EyeOff } from 'lucide-react';
+import QRCode from 'react-qr-code';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
@@ -82,9 +83,6 @@ function BookFlow() {
   useEffect(() => { setPlan(initialPlan); }, [initialPlan]);
 
   const planInfo = PLANS[plan];
-  const qrUrl = result
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(result.qrData)}&margin=10&color=000000&bgcolor=ffffff`
-    : '';
 
   // ── Validation ──────────────────────────────────────────────────
   function validateStep2(): boolean {
@@ -677,9 +675,14 @@ function BookFlow() {
               {/* QR Code */}
               <div className="flex flex-col items-center gap-3">
                 <p className="text-sm font-semibold text-zinc-700">Your Entry QR Code</p>
-                <div className="p-4 bg-white rounded-2xl border-2 border-orange-200 shadow-sm">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={qrUrl} alt="Entry QR Code" width={220} height={220} className="rounded-lg" />
+                <div className="p-5 bg-white rounded-2xl border-2 border-orange-200 shadow-sm">
+                  <QRCode
+                    value={result.qrData}
+                    size={200}
+                    bgColor="#ffffff"
+                    fgColor="#000000"
+                    level="M"
+                  />
                 </div>
                 <p className="text-xs text-zinc-400 max-w-xs">
                   Show this QR code at the entrance. The staff will scan it to check you in.
