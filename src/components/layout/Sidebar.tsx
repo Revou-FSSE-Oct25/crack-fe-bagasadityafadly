@@ -2,7 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, CalendarDays, Dumbbell, Trophy, LogOut } from 'lucide-react';
+import {
+  LayoutDashboard, CalendarDays, Dumbbell, Trophy,
+  LogOut, ShieldCheck, Star, UserCheck, CreditCard,
+} from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { cn } from '@/lib/utils';
 
@@ -11,6 +14,7 @@ const navItems = [
   { href: '/bookings',     label: 'My Bookings',  icon: CalendarDays },
   { href: '/classes',      label: 'Classes',      icon: Dumbbell },
   { href: '/leaderboard',  label: 'Leaderboard',  icon: Trophy },
+  { href: '/membership',   label: 'Membership',   icon: CreditCard },
 ];
 
 export function Sidebar() {
@@ -47,7 +51,39 @@ export function Sidebar() {
             {label}
           </Link>
         ))}
+
+        {/* Become a Member CTA — shown only to NON_MEMBER users */}
+        {user?.role === 'NON_MEMBER' && (
+          <Link
+            href="/membership"
+            className={cn(
+              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors mt-2',
+              pathname === '/membership'
+                ? 'bg-orange-500 text-white'
+                : 'bg-orange-50 text-orange-600 hover:bg-orange-100 border border-orange-200'
+            )}
+          >
+            <Star className="size-4 shrink-0" />
+            Become a Member
+          </Link>
+        )}
       </nav>
+
+      {/* Admin link */}
+      {user?.role === 'ADMIN' && (
+        <Link
+          href="/admin"
+          className={cn(
+            'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors mb-2',
+            pathname.startsWith('/admin')
+              ? 'bg-red-50 text-red-600'
+              : 'text-red-500 hover:bg-red-50 hover:text-red-600'
+          )}
+        >
+          <ShieldCheck className="size-4 shrink-0" />
+          Admin Panel
+        </Link>
+      )}
 
       {/* User + logout */}
       <div className="border-t pt-4 flex flex-col gap-3">
@@ -55,6 +91,20 @@ export function Sidebar() {
           <div className="px-3 py-2">
             <p className="text-sm font-medium text-zinc-800 truncate">{user.name}</p>
             <p className="text-xs text-zinc-400 truncate">{user.email}</p>
+            {/* Membership / role badge */}
+            {user.role === 'ADMIN' && (
+              <p className="text-xs font-medium text-red-500 mt-0.5 flex items-center gap-1">
+                <ShieldCheck className="size-3" /> Admin
+              </p>
+            )}
+            {user.role === 'MEMBER' && (
+              <p className="text-xs font-medium text-green-600 mt-0.5 flex items-center gap-1">
+                <UserCheck className="size-3" /> Active Member
+              </p>
+            )}
+            {user.role === 'NON_MEMBER' && (
+              <p className="text-xs font-medium text-zinc-400 mt-0.5">Non-Member</p>
+            )}
           </div>
         )}
         <button

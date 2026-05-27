@@ -1,12 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-}
+import type { User } from '@/types';
 
 interface AuthStore {
   token: string | null;
@@ -15,6 +9,7 @@ interface AuthStore {
   login: (token: string, user: User) => void;
   logout: () => void;
   setHasHydrated: (v: boolean) => void;
+  updateUser: (patch: Partial<User>) => void;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -26,6 +21,10 @@ export const useAuthStore = create<AuthStore>()(
       login: (token, user) => set({ token, user }),
       logout: () => set({ token: null, user: null }),
       setHasHydrated: (v) => set({ _hasHydrated: v }),
+      updateUser: (patch) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...patch } : null,
+        })),
     }),
     {
       name: 'gymora-auth',

@@ -1,10 +1,62 @@
+// ── Role ─────────────────────────────────────────────────────────────────────
+export type UserRole = 'ADMIN' | 'MEMBER' | 'NON_MEMBER';
+
+// ── User ─────────────────────────────────────────────────────────────────────
 export interface User {
   id: string;
   email: string;
   name: string;
-  role: string;
+  role: UserRole;
 }
 
+// ── Membership ────────────────────────────────────────────────────────────────
+export type MembershipType = 'TRIAL' | 'BASIC' | 'PREMIUM';
+export type MembershipStatus = 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
+
+export interface Membership {
+  id: string;
+  type: MembershipType;
+  status: MembershipStatus;
+  startDate: string;
+  endDate: string;
+}
+
+// ── Trainer ───────────────────────────────────────────────────────────────────
+export interface Trainer {
+  id: string;
+  name: string;
+  specialty: string | null;
+  bio: string | null;
+  avatarUrl: string | null;
+}
+
+// ── Schedule ──────────────────────────────────────────────────────────────────
+export interface Schedule {
+  id: string;
+  startTime: string;
+  endTime: string;
+  roomOrZone: string | null;
+  isActive: boolean;
+  spotsLeft: number;
+  totalBooked: number;
+  class: {
+    id: string;
+    name: string;
+    description: string | null;
+    durationMinutes: number;
+    capacity: number;
+    difficulty: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+    caloriesEstimate: number | null;
+  };
+  trainer: {
+    id: string;
+    name: string;
+    specialty: string | null;
+    avatarUrl: string | null;
+  };
+}
+
+// ── Booking ───────────────────────────────────────────────────────────────────
 export interface Booking {
   id: string;
   type: 'GYM' | 'CLASS' | 'PT';
@@ -24,6 +76,7 @@ export interface Booking {
   trainer?: { id: string; name: string } | null;
 }
 
+// ── GymClass ──────────────────────────────────────────────────────────────────
 export interface GymClass {
   id: string;
   name: string;
@@ -35,6 +88,7 @@ export interface GymClass {
   isActive: boolean;
 }
 
+// ── XP / Gamification ─────────────────────────────────────────────────────────
 export interface UserXp {
   xpTotal: number;
   level: number;
