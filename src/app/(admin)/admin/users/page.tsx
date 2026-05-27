@@ -62,10 +62,12 @@ export default function AdminUsersPage() {
 
   useEffect(() => { load(); }, []);
 
-  // Whether ADMIN role is allowed to set a given target role
-  function adminCanSetRole(targetRole: Role): boolean {
-    // ADMIN can only promote NON_MEMBER → MEMBER
-    return targetRole === 'MEMBER';
+  // Whether ADMIN role is allowed to set a given target role on a given user
+  function adminCanSetRole(targetRole: Role, currentUserRole: Role): boolean {
+    // ADMIN can only toggle between NON_MEMBER and MEMBER
+    // Cannot touch ADMIN or ADMINISTRATOR accounts
+    if (currentUserRole === 'ADMIN' || currentUserRole === 'ADMINISTRATOR') return false;
+    return targetRole === 'MEMBER' || targetRole === 'NON_MEMBER';
   }
 
   async function changeRole(userId: string, role: Role) {
@@ -109,8 +111,8 @@ export default function AdminUsersPage() {
         {/* Permission notice for ADMIN role */}
         {!isAdministrator && (
           <div className="mb-4 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-700">
-            <strong>Admin permissions:</strong> You can assign memberships and promote NON_MEMBER → MEMBER.
-            To change roles to ADMIN or SUPER ADMIN, contact a Super Administrator.
+            <strong>Admin permissions:</strong> You can toggle MEMBER ↔ NON_MEMBER and assign memberships.
+            To assign ADMIN or SUPER ADMIN roles, contact a Super Administrator.
           </div>
         )}
 
@@ -179,11 +181,11 @@ export default function AdminUsersPage() {
                           <span className="text-xs font-medium text-zinc-400 w-16 shrink-0">Role:</span>
                           {ROLE_BUTTONS.map(({ label, role, style }) => {
                             const isCurrent  = u.role === role;
-                            const isAllowed  = isAdministrator || adminCanSetRole(role);
-                            // ADMIN can only set MEMBER on NON_MEMBER users
+                            const isAllowed  = isAdministrator || adminCanSetRole(role, u.role);
+                            // ADMIN: can toggle NON_MEMBER↔MEMBER only; ADMINISTRATOR: any change
                             const isApplicable = isAdministrator
                               ? !isCurrent
-                              : role === 'MEMBER' && u.role === 'NON_MEMBER';
+                              : !isCurrent && (u.role === 'NON_MEMBER' || u.role === 'MEMBER') && (role === 'MEMBER' || role === 'NON_MEMBER');
 
                             return (
                               <button
@@ -193,9 +195,9 @@ export default function AdminUsersPage() {
                                   !isAllowed
                                     ? 'Only Super Administrators can set this role'
                                     : isCurrent
-                                      ? 'Current role'
+                                      ? 'Already this role'
                                       : !isApplicable
-                                        ? 'Can only promote NON_MEMBER to MEMBER'
+                                        ? 'Admins can only change MEMBER ↔ NON_MEMBER'
                                         : undefined
                                 }
                                 onClick={() => changeRole(u.id, role)}
