@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api';
+import { useAuthStore } from '@/store/auth.store';
 
-type Role = 'ADMIN' | 'MEMBER' | 'NON_MEMBER';
+type Role = 'ADMINISTRATOR' | 'ADMIN' | 'MEMBER' | 'NON_MEMBER';
 type MembershipType = 'BASIC' | 'PREMIUM' | 'TRIAL' | 'NONE';
 
 interface AdminUser {
@@ -22,9 +23,10 @@ interface AdminUser {
 }
 
 const roleColor: Record<Role, string> = {
-  ADMIN:      'bg-red-100 text-red-700',
-  MEMBER:     'bg-green-100 text-green-700',
-  NON_MEMBER: 'bg-zinc-100 text-zinc-500',
+  ADMINISTRATOR: 'bg-purple-100 text-purple-700',
+  ADMIN:         'bg-red-100 text-red-700',
+  MEMBER:        'bg-green-100 text-green-700',
+  NON_MEMBER:    'bg-zinc-100 text-zinc-500',
 };
 
 const membershipOptions: { label: string; type: MembershipType; days: number }[] = [
@@ -35,6 +37,9 @@ const membershipOptions: { label: string; type: MembershipType; days: number }[]
 ];
 
 export default function AdminUsersPage() {
+  const currentUser = useAuthStore((s) => s.user);
+  const isAdministrator = currentUser?.role === 'ADMINISTRATOR';
+
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
@@ -125,22 +130,42 @@ export default function AdminUsersPage() {
 
                       {/* Action row */}
                       <div className="flex gap-2 flex-wrap border-t pt-3">
-                        {/* Role buttons */}
-                        <div className="flex gap-1">
-                          {(['NON_MEMBER', 'MEMBER', 'ADMIN'] as Role[]).map((r) => (
-                            <button
-                              key={r}
-                              disabled={busy || u.role === r}
-                              onClick={() => changeRole(u.id, r)}
-                              className={`px-2 py-1 text-xs rounded-md font-medium transition-colors disabled:opacity-40 ${
-                                u.role === r
-                                  ? 'bg-zinc-200 text-zinc-500 cursor-default'
-                                  : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
-                              }`}
-                            >
-                              → {r.replace('_', ' ')}
-                            </button>
-                          ))}
+                        {/* Role buttons — ADMINISTRATOR sees all options, ADMIN can only promote NON_MEMBER→MEMBER */}
+                        <div className="flex gap-1 flex-wrap">
+                          {isAdministrator ? (
+                            // ADMINISTRATOR: full role control
+                            (['NON_MEMBER', 'MEMBER', 'ADMIN', 'ADMINISTRATOR'] as Role[]).map((r) => (
+                              <button
+                                key={r}
+                                disabled={busy || u.role === r}
+                                onClick={() => changeRole(u.id, r)}
+                                className={`px-2 py-1 text-xs rounded-md font-medium transition-colors disabled:opacity-40 ${
+                                  u.role === r
+                                    ? 'bg-zinc-200 text-zinc-500 cursor-default'
+                                    : r === 'ADMINISTRATOR'
+                                      ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                                      : r === 'ADMIN'
+                                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                                        : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
+                                }`}
+                              >
+                                → {r.replace('_', ' ')}
+                              </button>
+                            ))
+                          ) : (
+                            // ADMIN: can only promote NON_MEMBER → MEMBER
+                            u.role === 'NON_MEMBER' ? (
+                              <button
+                                disabled={busy}
+                                onClick={() => changeRole(u.id, 'MEMBER')}
+                                className="px-2 py-1 text-xs rounded-md font-medium bg-green-100 text-green-700 hover:bg-green-200 transition-colors disabled:opacity-40"
+                              >
+                                → MEMBER
+                              </button>
+                            ) : (
+                              <span className="text-xs text-zinc-400 italic">Role locked</span>
+                            )
+                          )}
                         </div>
 
                         {/* Membership buttons */}

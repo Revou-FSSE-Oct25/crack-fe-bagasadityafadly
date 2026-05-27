@@ -23,13 +23,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const { token, user, _hasHydrated, logout } = useAuthStore();
 
+  const isStaff = user?.role === 'ADMIN' || user?.role === 'ADMINISTRATOR';
+
   useEffect(() => {
     if (!_hasHydrated) return;
     if (!token) { router.replace('/login'); return; }
-    if (user?.role !== 'ADMIN') { router.replace('/dashboard'); }
-  }, [_hasHydrated, token, user, router]);
+    if (!isStaff) { router.replace('/dashboard'); }
+  }, [_hasHydrated, token, isStaff, router]);
 
-  if (!_hasHydrated || !token || user?.role !== 'ADMIN') return null;
+  if (!_hasHydrated || !token || !isStaff) return null;
 
   function handleLogout() {
     logout();
@@ -66,7 +68,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="border-t pt-4 flex flex-col gap-3">
           <div className="px-3 py-2">
             <p className="text-sm font-medium text-zinc-800 truncate">{user?.name}</p>
-            <p className="text-xs text-red-500 font-medium">ADMIN</p>
+            <p className={`text-xs font-medium ${user?.role === 'ADMINISTRATOR' ? 'text-purple-600' : 'text-red-500'}`}>
+              {user?.role}
+            </p>
           </div>
           <Link
             href="/dashboard"

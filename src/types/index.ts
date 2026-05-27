@@ -1,5 +1,5 @@
 // ── Role ─────────────────────────────────────────────────────────────────────
-export type UserRole = 'ADMIN' | 'MEMBER' | 'NON_MEMBER';
+export type UserRole = 'ADMINISTRATOR' | 'ADMIN' | 'MEMBER' | 'NON_MEMBER';
 
 // ── User ─────────────────────────────────────────────────────────────────────
 export interface User {

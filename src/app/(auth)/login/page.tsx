@@ -61,7 +61,8 @@ export default function LoginPage() {
       }>('/auth/login', { method: 'POST', body: JSON.stringify(form) });
 
       login(data.access_token, data.user);
-      router.push(data.user.role === 'ADMIN' ? '/admin' : '/dashboard');
+      const isStaff = data.user.role === 'ADMIN' || data.user.role === 'ADMINISTRATOR';
+      router.push(isStaff ? '/admin' : '/dashboard');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Login failed';
 
