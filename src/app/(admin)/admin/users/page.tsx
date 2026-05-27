@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 
@@ -29,20 +28,29 @@ const roleColor: Record<Role, string> = {
   NON_MEMBER:    'bg-zinc-100 text-zinc-500',
 };
 
+// Role buttons config — label, target role, and colors
+const ROLE_BUTTONS: { label: string; role: Role; style: string }[] = [
+  { label: '→ NON MEMBER', role: 'NON_MEMBER',    style: 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200' },
+  { label: '→ MEMBER',     role: 'MEMBER',         style: 'bg-green-100 text-green-700 hover:bg-green-200' },
+  { label: '→ ADMIN',      role: 'ADMIN',          style: 'bg-red-100 text-red-700 hover:bg-red-200' },
+  { label: '→ SUPER ADMIN',role: 'ADMINISTRATOR',  style: 'bg-purple-100 text-purple-700 hover:bg-purple-200' },
+];
+
 const membershipOptions: { label: string; type: MembershipType; days: number }[] = [
-  { label: 'Trial (7 days)',    type: 'TRIAL',   days: 7 },
-  { label: 'Basic (30 days)',   type: 'BASIC',   days: 30 },
-  { label: 'Premium (30 days)', type: 'PREMIUM', days: 30 },
-  { label: 'Premium (90 days)', type: 'PREMIUM', days: 90 },
+  { label: 'Trial (7d)',    type: 'TRIAL',   days: 7 },
+  { label: 'Basic (30d)',   type: 'BASIC',   days: 30 },
+  { label: 'Premium (30d)', type: 'PREMIUM', days: 30 },
+  { label: 'Premium (90d)', type: 'PREMIUM', days: 90 },
 ];
 
 export default function AdminUsersPage() {
   const currentUser = useAuthStore((s) => s.user);
   const isAdministrator = currentUser?.role === 'ADMINISTRATOR';
 
-  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [users, setUsers]   = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
+  const [roleError, setRoleError] = useState<string | null>(null);
 
   async function load() {
     try {
@@ -54,7 +62,14 @@ export default function AdminUsersPage() {
 
   useEffect(() => { load(); }, []);
 
+  // Whether ADMIN role is allowed to set a given target role
+  function adminCanSetRole(targetRole: Role): boolean {
+    // ADMIN can only promote NON_MEMBER → MEMBER
+    return targetRole === 'MEMBER';
+  }
+
   async function changeRole(userId: string, role: Role) {
+    setRoleError(null);
     setActionId(userId);
     try {
       await apiFetch(`/admin/users/${userId}/role`, {
@@ -62,8 +77,11 @@ export default function AdminUsersPage() {
         body: JSON.stringify({ role }),
       });
       await load();
-    } catch { /* ignore */ }
-    finally { setActionId(null); }
+    } catch (err) {
+      setRoleError(err instanceof Error ? err.message : 'Failed to change role');
+    } finally {
+      setActionId(null);
+    }
   }
 
   async function assignMembership(userId: string, type: MembershipType, durationDays: number) {
@@ -88,6 +106,20 @@ export default function AdminUsersPage() {
       </header>
 
       <main className="flex-1 p-6">
+        {/* Permission notice for ADMIN role */}
+        {!isAdministrator && (
+          <div className="mb-4 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-700">
+            <strong>Admin permissions:</strong> You can assign memberships and promote NON_MEMBER → MEMBER.
+            To change roles to ADMIN or SUPER ADMIN, contact a Super Administrator.
+          </div>
+        )}
+
+        {roleError && (
+          <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-600">
+            ⚠️ {roleError}
+          </div>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>All Users</CardTitle>
@@ -95,16 +127,20 @@ export default function AdminUsersPage() {
           <CardContent>
             {loading ? (
               <div className="space-y-3">
-                {[1,2,3].map(i => <div key={i} className="h-16 bg-zinc-100 rounded-lg animate-pulse" />)}
+                {[1, 2, 3].map(i => <div key={i} className="h-20 bg-zinc-100 rounded-lg animate-pulse" />)}
               </div>
+            ) : users.length === 0 ? (
+              <p className="text-sm text-zinc-400 text-center py-8">No users found.</p>
             ) : (
               <div className="flex flex-col gap-3">
                 {users.map((u) => {
                   const membership = u.memberships[0];
                   const busy = actionId === u.id;
+
                   return (
                     <div key={u.id} className="flex flex-col gap-3 p-4 rounded-xl border bg-white">
-                      {/* User info row */}
+
+                      {/* ── User info ───────────────────────────────── */}
                       <div className="flex items-center justify-between gap-4 flex-wrap">
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="size-9 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold shrink-0">
@@ -117,59 +153,69 @@ export default function AdminUsersPage() {
                         </div>
                         <div className="flex items-center gap-2 flex-wrap shrink-0">
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${roleColor[u.role]}`}>
-                            {u.role}
+                            {u.role.replace('_', ' ')}
                           </span>
-                          <span className="text-xs text-zinc-400">Lv.{u.level} · {u.xpTotal} XP · 🔥{u.streakCount}</span>
+                          <span className="text-xs text-zinc-400">
+                            Lv.{u.level} · {u.xpTotal} XP · 🔥{u.streakCount}
+                          </span>
                           {membership && (
                             <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
                               {membership.type} until {new Date(membership.endDate).toLocaleDateString()}
                             </span>
                           )}
+                          {!u.isActive && (
+                            <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium">
+                              Deactivated
+                            </span>
+                          )}
                         </div>
                       </div>
 
-                      {/* Action row */}
-                      <div className="flex gap-2 flex-wrap border-t pt-3">
-                        {/* Role buttons — ADMINISTRATOR sees all options, ADMIN can only promote NON_MEMBER→MEMBER */}
-                        <div className="flex gap-1 flex-wrap">
-                          {isAdministrator ? (
-                            // ADMINISTRATOR: full role control
-                            (['NON_MEMBER', 'MEMBER', 'ADMIN', 'ADMINISTRATOR'] as Role[]).map((r) => (
+                      {/* ── Actions ─────────────────────────────────── */}
+                      <div className="flex flex-col gap-2 border-t pt-3">
+
+                        {/* Role change row */}
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span className="text-xs font-medium text-zinc-400 w-16 shrink-0">Role:</span>
+                          {ROLE_BUTTONS.map(({ label, role, style }) => {
+                            const isCurrent  = u.role === role;
+                            const isAllowed  = isAdministrator || adminCanSetRole(role);
+                            // ADMIN can only set MEMBER on NON_MEMBER users
+                            const isApplicable = isAdministrator
+                              ? !isCurrent
+                              : role === 'MEMBER' && u.role === 'NON_MEMBER';
+
+                            return (
                               <button
-                                key={r}
-                                disabled={busy || u.role === r}
-                                onClick={() => changeRole(u.id, r)}
-                                className={`px-2 py-1 text-xs rounded-md font-medium transition-colors disabled:opacity-40 ${
-                                  u.role === r
-                                    ? 'bg-zinc-200 text-zinc-500 cursor-default'
-                                    : r === 'ADMINISTRATOR'
-                                      ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
-                                      : r === 'ADMIN'
-                                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                                        : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
-                                }`}
+                                key={role}
+                                disabled={busy || isCurrent || !isAllowed || !isApplicable}
+                                title={
+                                  !isAllowed
+                                    ? 'Only Super Administrators can set this role'
+                                    : isCurrent
+                                      ? 'Current role'
+                                      : !isApplicable
+                                        ? 'Can only promote NON_MEMBER to MEMBER'
+                                        : undefined
+                                }
+                                onClick={() => changeRole(u.id, role)}
+                                className={`px-2 py-1 text-xs rounded-md font-medium transition-colors
+                                  ${isCurrent
+                                    ? 'bg-zinc-200 text-zinc-400 cursor-default'
+                                    : (!isAllowed || !isApplicable)
+                                      ? 'bg-zinc-100 text-zinc-300 cursor-not-allowed'
+                                      : style
+                                  } disabled:opacity-50`}
                               >
-                                → {r.replace('_', ' ')}
+                                {busy ? '…' : label}
                               </button>
-                            ))
-                          ) : (
-                            // ADMIN: can only promote NON_MEMBER → MEMBER
-                            u.role === 'NON_MEMBER' ? (
-                              <button
-                                disabled={busy}
-                                onClick={() => changeRole(u.id, 'MEMBER')}
-                                className="px-2 py-1 text-xs rounded-md font-medium bg-green-100 text-green-700 hover:bg-green-200 transition-colors disabled:opacity-40"
-                              >
-                                → MEMBER
-                              </button>
-                            ) : (
-                              <span className="text-xs text-zinc-400 italic">Role locked</span>
-                            )
-                          )}
+                            );
+                          })}
                         </div>
 
-                        {/* Membership buttons */}
-                        <div className="flex gap-1 flex-wrap">
+                        {/* Membership assignment row */}
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span className="text-xs font-medium text-zinc-400 w-16 shrink-0">Membership:</span>
                           {membershipOptions.map((m) => (
                             <button
                               key={`${m.type}-${m.days}`}
@@ -181,6 +227,7 @@ export default function AdminUsersPage() {
                             </button>
                           ))}
                         </div>
+
                       </div>
                     </div>
                   );
