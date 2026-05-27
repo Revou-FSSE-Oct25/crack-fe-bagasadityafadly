@@ -12,8 +12,8 @@
 | | Link |
 |---|---|
 | 🌐 **Live Demo** | [https://crack-fe-bagasadityafadly.vercel.app](https://crack-fe-bagasadityafadly.vercel.app) |
-| 🔗 **Backend API** | `https://gymora-api.onrender.com/api/v1` |
-| 📖 **API Docs (Swagger)** | `https://gymora-api.onrender.com/api/docs` |
+| 🔗 **Backend API** | [https://crack-be-bagasadityafadly-1.onrender.com](https://crack-be-bagasadityafadly-1.onrender.com) |
+| 📖 **API Docs (Swagger)** | [https://crack-be-bagasadityafadly-1.onrender.com/api/docs](https://crack-be-bagasadityafadly-1.onrender.com/api/docs)  |
 | 💾 **Backend Repo** | [crack-be-bagasadityafadly](../crack-be-bagasadityafadly) |
 
 ---
@@ -79,9 +79,6 @@ It connects to the [Gymora Backend API](../crack-be-bagasadityafadly) for all da
 
 ## UI Screenshots
 
-> 📸 **Attach your UI screenshots below.**  
-> Save images into the `docs/` folder and replace the placeholders.
-
 <!-- ================================================================
      SCREENSHOT PLACEHOLDERS
      Recommended flow:
@@ -92,27 +89,27 @@ It connects to the [Gymora Backend API](../crack-be-bagasadityafadly) for all da
      ================================================================ -->
 
 ### Landing Page
-![Landing Page](docs/ss-landing.png)
+![Landing Page](assets/image1.png)
 *Public landing page with plan comparison and booking CTA.*
 
 ### Member Dashboard
-![Dashboard](docs/ss-dashboard.png)
+![Dashboard](assets/image2.png)
 *XP card, streak tracker, quick-book, recommendations, and leaderboard.*
 
 ### Guest Booking Flow
-![Booking Flow](docs/ss-booking.png)
+![Booking Flow](assets/image3.png)
 *5-step flow: choose plan → fill details → pick date/time → pay → QR code.*
 
 ### Classes & Schedules
-![Classes Page](docs/ss-classes.png)
+![Classes Page](assets/image4.png)
 *Browse class types and upcoming sessions with spots-left indicator.*
 
 ### Booking History
-![Bookings Page](docs/ss-bookings.png)
+![Bookings Page](assets/image5.png)
 *List of all bookings with status badges and cancel action.*
 
 ### Admin Panel
-![Admin Panel](docs/ss-admin.png)
+![Admin Panel](assets/image6.png)
 *Overview stats and navigation to all management sections.*
 
 ---
